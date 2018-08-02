@@ -2,4 +2,5 @@ terraform/keys.sh
 terraform/awsdetails.data
 docker-compose.yml
 tf
+terraform/.terraform
 terraform_0.6.16_linux_amd64.zip
