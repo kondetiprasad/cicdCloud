@@ -1,0 +1,46 @@
+Host *
+    StrictHostKeyChecking no
+Host nat_a
+  user 		      ec2-user
+  HostName 	    34.209.163.30
+  IdentityFile 	~/.ssh/prasad.pem
+Host nat_b
+  user          ec2-user
+  HostName      52.89.139.210
+  IdentityFile  ~/.ssh/prasad.pem
+Host jenkins
+  User          centos
+  HostName      jenkins-dev-az-a.demo.training.com
+  Port          22
+  ProxyCommand  ssh nat_a -W %h:%p
+  IdentityFile  ~/.ssh/prasad.pem
+Host mysql
+  User          centos
+  HostName      mysql-dev-az-a.demo.training.com
+  Port          22
+  ProxyCommand  ssh nat_a -W %h:%p
+  IdentityFile  ~/.ssh/prasad.pem
+Host app_a
+  User          centos
+  HostName      app-dev-az-a.demo.training.com
+  Port          22
+  ProxyCommand  ssh nat_a -W %h:%p
+  IdentityFile  ~/.ssh/prasad.pem
+Host puppet
+  User          centos
+  HostName      puppet-dev-az-b.demo.training.com
+  Port          22
+  ProxyCommand  ssh nat_b -W %h:%p
+  IdentityFile  ~/.ssh/prasad.pem
+Host app_b
+  User          centos
+  HostName      app-dev-az-b.demo.training.com
+  Port          22
+  ProxyCommand  ssh nat_a -W %h:%p
+  IdentityFile  ~/.ssh/prasad.pem
+Host zabbix
+  User          centos
+  HostName      zabbix-dev-az-b.demo.training.com
+  Port          22
+  ProxyCommand  ssh nat_a -W %h:%p
+  IdentityFile  ~/.ssh/prasad.pem

@@ -1,0 +1,3 @@
+job('Stryker Job') {
+
+}
