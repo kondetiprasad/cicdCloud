@@ -1,12 +1,12 @@
 Host *
     StrictHostKeyChecking no
 Host nat_a
-  user 		      ec2-user
-  HostName 	    34.209.163.30
+  user 		ec2-user
+  HostName 	52.27.176.173
   IdentityFile 	~/.ssh/prasad.pem
 Host nat_b
   user          ec2-user
-  HostName      52.89.139.210
+  HostName      34.214.248.225
   IdentityFile  ~/.ssh/prasad.pem
 Host jenkins
   User          centos
