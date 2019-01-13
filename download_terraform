@@ -1,0 +1,94 @@
+#!/bin/bash
+# Download a version of the terraform binaries, and rename them according to our standard
+# Usage: download-terraform [DEST_DIR] [VERSION]
+
+set -euo pipefail
+
+## Config
+DEFAULT_DEST_DIR=.
+TMP_DIR=/tmp
+RELEASE_URL=https://releases.hashicorp.com/terraform
+
+LINUX_SUFFIX=_linux_amd64.zip
+MAC_SUFFIX=_darwin_amd64.zip
+WIN_SUFFIX=_windows_amd64.zip
+
+
+## Functions
+die() { echo "$@"; exit 99; }
+
+get_latest_terraform_version() {
+    VERSION=$(curl -s --insecure https://releases.hashicorp.com/terraform/ | grep -oP 'terraform_[^<]+' | grep -v '-' | sort -V  | tail -n 1 | cut -f2 -d_)
+    [[ -n $VERSION ]] \
+        || die "[ERROR] Couldn't determine latest terraform version"
+}
+
+# For each binary..
+#  1. Download from HashiCorp site
+#  2. Unzip to extract the terraform binary
+#  3. Move it to the required destionation
+download_and_install_terraform_bin() {
+    url=$1
+    dest_file=$2
+    if [[ -e terraform ]]; then
+        rm terraform \
+            || die "Could not remove terraform file"
+    fi
+
+    zip_file=$(basename $url)
+
+    echo "Downloading $url"
+    curl -s --insecure -o $zip_file $url \
+        || die "Could not download $url"
+
+    terraform_bin=$(unzip -l $zip_file  | grep -oP 'terraform.*' | grep -v .zip)
+
+    echo "Extracting $terraform_bin from $zip_file"
+    unzip $zip_file \
+        || die "Could not unzip $zip_file"
+
+    echo "Deploying $terraform_bin to $DEFAULT_DEST_DIR/$dest_file"
+    mv $terraform_bin $DEFAULT_DEST_DIR/$dest_file \
+        || die "Could not mv $terraform_bin $DEFAULT_DEST_DIR/$dest_file"
+
+    rm $zip_file \
+        || die "Could not clean up zip file: $zip_file"
+}
+
+
+## Main
+
+DEST_DIR=${1:-$DEFAULT_DEST_DIR}
+VERSION=${2:-""}
+
+[[ -d $DEST_DIR ]] \
+    || die "Destination directory $DEST_DIR must exist, if given. (leave empty for current directory)"
+
+
+type -a curl &>/dev/null \
+    || die "[ERROR] curl binary was not found in the PATH"
+
+type -a unzip &>/dev/null \
+    || die "[ERROR] unzip binary was not found in the PATH"
+
+if [[ -z $VERSION || $VERSION == 'latest' ]]; then
+    echo "No version given. Trying to pull the latest"
+    get_latest_terraform_version
+    echo "Latest version is $VERSION"
+fi
+
+echo "Downloading terraform version $VERSION binaries and deploying to $DEST_DIR"
+
+cd $DEST_DIR
+
+download_and_install_terraform_bin \
+    $RELEASE_URL/$VERSION/terraform_${VERSION}${LINUX_SUFFIX} \
+    terraform_${VERSION}_linux
+
+download_and_install_terraform_bin \
+    $RELEASE_URL/$VERSION/terraform_${VERSION}${MAC_SUFFIX} \
+    terraform_${VERSION}_mac
+
+download_and_install_terraform_bin \
+    $RELEASE_URL/$VERSION/terraform_${VERSION}${WIN_SUFFIX} \
+    terraform_${VERSION}_win.exe
